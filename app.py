@@ -10,7 +10,7 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
-# ── CSS — Inter font scoped carefully so Streamlit icons still work ────────────
+# CSS — Inter font scoped carefully so Streamlit icons still work
 st.markdown("""
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
@@ -120,26 +120,26 @@ AIS_KEY = "1efe0b9c2c3fe0fab4ede3da9473a1627ebc4d01"
 EIA_KEY = "Mlh5ISF3daQcsjmbsKhziJhcGVmkosp5r7Vu8GUs"
 
 for key, default in [
-    ("stream_active",    False),
-    ("oil_prices",       []),
+    ("stream_active", False),
+    ("oil_prices", []),
     ("last_price_fetch", None),
-    ("stats_history",    []),
-    ("alerts",           []),
+    ("stats_history", []),
+    ("alerts", []),
 ]:
     if key not in st.session_state:
         st.session_state[key] = default
 
 import utils.ais_client as ais
-from utils.eia_client        import fetch_oil_prices
-from utils.anomaly           import detect_anomalies
-from components.map_view     import render_map
-from components.metrics      import render_metrics
-from components.correlation  import render_correlation
+from utils.eia_client import fetch_oil_prices
+from utils.anomaly import detect_anomalies
+from components.map_view import render_map
+from components.metrics import render_metrics
+from components.correlation import render_correlation
 from components.vessel_table import render_vessel_table
 from components.alerts_panel import render_alerts
 from components.crisis_panel import render_crisis_panel
 
-# ── Sidebar ────────────────────────────────────────────────────────────────────
+# Sidebar
 with st.sidebar:
     st.markdown(
         "<div style='padding:4px 0 12px 0;"
@@ -206,7 +206,7 @@ with st.sidebar:
         for entry in ais.get_debug_log()[:30]:
             st.caption(entry)
 
-# ── Vessel data — filter to tankers/cargo at the DataFrame level ───────────────
+# Vessel data — filter to tankers/cargo at the DataFrame level
 raw_vessels = ais.get_vessels()
 if raw_vessels:
     vessels_df = pd.DataFrame(list(raw_vessels.values()))
@@ -221,7 +221,7 @@ if raw_vessels:
 else:
     vessels_df = pd.DataFrame()
 
-# ── Oil prices ─────────────────────────────────────────────────────────────────
+# Oil prices
 now = datetime.now(timezone.utc)
 if (st.session_state.last_price_fetch is None or
         (now - st.session_state.last_price_fetch).total_seconds() > 300):
@@ -230,7 +230,7 @@ if (st.session_state.last_price_fetch is None or
         st.session_state.oil_prices = prices
         st.session_state.last_price_fetch = now
 
-# ── Anomaly detection ──────────────────────────────────────────────────────────
+# Anomaly detection
 if raw_vessels:
     new_alerts = detect_anomalies(
         vessels={k: v for k, v in raw_vessels.items()
@@ -244,13 +244,13 @@ if raw_vessels:
             st.session_state.alerts.insert(0, a)
     st.session_state.alerts = st.session_state.alerts[:50]
 
-# ── Stats snapshot ─────────────────────────────────────────────────────────────
+# Stats snapshot
 if not vessels_df.empty and "nav_status" in vessels_df.columns:
     n_underway = int((vessels_df["nav_status"] == 0).sum())
-    n_holding  = int(vessels_df["nav_status"].isin([1, 2, 5, 6]).sum())
-    n_aden     = int(vessels_df["zone"].isin(["Gulf of Aden","Red Sea"]).sum()) if "zone" in vessels_df.columns else 0
-    wti_now    = st.session_state.oil_prices[-1].get("wti")   if st.session_state.oil_prices else None
-    brent_now  = st.session_state.oil_prices[-1].get("brent") if st.session_state.oil_prices else None
+    n_holding = int(vessels_df["nav_status"].isin([1, 2, 5, 6]).sum())
+    n_aden = int(vessels_df["zone"].isin(["Gulf of Aden","Red Sea"]).sum()) if "zone" in vessels_df.columns else 0
+    wti_now = st.session_state.oil_prices[-1].get("wti") if st.session_state.oil_prices else None
+    brent_now = st.session_state.oil_prices[-1].get("brent") if st.session_state.oil_prices else None
     st.session_state.stats_history.append({
         "ts": now, "total": len(vessels_df),
         "underway": n_underway, "holding": n_holding, "aden": n_aden,
@@ -261,10 +261,10 @@ if not vessels_df.empty and "nav_status" in vessels_df.columns:
         s for s in st.session_state.stats_history if s["ts"] > cutoff
     ]
 
-# ── Layout ─────────────────────────────────────────────────────────────────────
+# Layout
 st.markdown(
     "<h2 style='font-family:Inter,-apple-system,BlinkMacSystemFont,sans-serif;"
-    "color:#f0f4ff;margin:0;font-weight:600;letter-spacing:-0.02em;font-size:1.6rem'>"
+    "color:#f0f4ff;margin:0;font-weight:600;letter-spacing:-0.02em;font-size:1.6rem;margin-top:15px'>"
     "Real-time Vessel Tracker</h2>"
     "<p style='color:#4a5568;font-size:0.78rem;margin:3px 0 10px 0'>"
     "Global AIS &nbsp;·&nbsp; "
